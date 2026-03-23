@@ -4,9 +4,6 @@
 class AttributeController {
     private $db;
 
-    /**
-     * Constructor to initialize database connection
-     */
     public function __construct($db) {
         $this->db = $db;
     }
@@ -16,28 +13,42 @@ class AttributeController {
     // ==========================================
 
     /**
-     * Fetch all available product sizes
+     * Fetch all sizes ordered by category and name
      */
     public function getSizes() {
-        $query = "SELECT * FROM sizes ORDER BY size_id DESC";
+        $query = "SELECT * FROM sizes ORDER BY category ASC, size_name ASC";
         $stmt = $this->db->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
-     * Add a new size to the database
+     * ADD: New size attribute
      */
-    public function addSize($name, $price) {
-        $query = "INSERT INTO sizes (size_name, extra_price) VALUES (:name, :price)";
+    public function addSize($name, $price, $category) {
+        $query = "INSERT INTO sizes (size_name, extra_price, category) VALUES (:name, :price, :category)";
         $stmt = $this->db->prepare($query);
         $stmt->bindParam(':name', $name);
         $stmt->bindParam(':price', $price);
+        $stmt->bindParam(':category', $category);
         return $stmt->execute();
     }
 
     /**
-     * Remove a size by ID
+     * UPDATE: Existing size attribute
+     */
+    public function updateSize($id, $name, $price, $category) {
+        $query = "UPDATE sizes SET size_name = :name, extra_price = :price, category = :category WHERE size_id = :id";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':id', $id);
+        $stmt->bindParam(':name', $name);
+        $stmt->bindParam(':price', $price);
+        $stmt->bindParam(':category', $category);
+        return $stmt->execute();
+    }
+
+    /**
+     * DELETE: Remove size attribute
      */
     public function deleteSize($id) {
         $query = "DELETE FROM sizes WHERE size_id = :id";
@@ -51,7 +62,7 @@ class AttributeController {
     // ==========================================
 
     /**
-     * Fetch all available product add-ons
+     * Fetch all add-ons
      */
     public function getAddons() {
         $query = "SELECT * FROM addons ORDER BY addon_id DESC";
@@ -61,18 +72,32 @@ class AttributeController {
     }
 
     /**
-     * Add a new add-on (e.g., extra sprinkles, greeting card)
+     * ADD: New Add-on (Toppings, Candles, etc.)
      */
-    public function addAddon($name, $price) {
-        $query = "INSERT INTO addons (addon_name, price) VALUES (:name, :price)";
+    public function addAddon($name, $price, $cat_id) {
+        $query = "INSERT INTO addons (addon_name, price, addon_category_id) VALUES (:name, :price, :cat_id)";
         $stmt = $this->db->prepare($query);
         $stmt->bindParam(':name', $name);
         $stmt->bindParam(':price', $price);
+        $stmt->bindParam(':cat_id', $cat_id);
         return $stmt->execute();
     }
 
     /**
-     * Remove an add-on by ID
+     * UPDATE: Existing Add-on
+     */
+    public function updateAddon($id, $name, $price, $cat_id) {
+        $query = "UPDATE addons SET addon_name = :name, price = :price, addon_category_id = :cat_id WHERE addon_id = :id";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':id', $id);
+        $stmt->bindParam(':name', $name);
+        $stmt->bindParam(':price', $price);
+        $stmt->bindParam(':cat_id', $cat_id);
+        return $stmt->execute();
+    }
+
+    /**
+     * DELETE: Remove Add-on
      */
     public function deleteAddon($id) {
         $query = "DELETE FROM addons WHERE addon_id = :id";

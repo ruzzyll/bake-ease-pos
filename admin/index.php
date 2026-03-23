@@ -1,120 +1,193 @@
 <?php
-// admin/index.php
+session_start();
 
-// 1. DATABASE: Go up one level to root, then into core/config
-require_once '../core/config/Database.php'; 
+// 1. Database & Controller Setup
+$dbPath = __DIR__ . '/../core/config/Database.php';
+if (file_exists($dbPath)) {
+    require_once $dbPath;
+} else {
+    die("Database Configuration Not Found.");
+}
 
-// 2. CONTROLLER: It is in the SAME folder as index.php (inside admin/controllers)
-require_once 'controllers/ReportController.php';
+try {
+    $database = new Database();
+    $db = $database->getConnection();
+} catch (Exception $e) {
+    die("Connection Error: " . $e->getMessage());
+}
 
-$database = new Database();
-$db = $database->getConnection();
+// 2. Load Controllers
+require_once 'controllers/AttributeController.php';
+require_once 'controllers/ProductController.php';
+require_once 'controllers/ReportController.php'; 
 
-$report = new ReportController($db);
+$attr = new AttributeController($db);
+$productCtrl = new ProductController($db);
+$reportCtrl = new ReportController($db); 
 
-// Simple Routing
+// 3. Routing Logic
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Bake Ease Admin</title>
-    <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bake Ease Admin | <?= ucfirst(str_replace('_', ' ', $page)) ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        :root { --primary-orange: #ff7a00; --sidebar-bg: #1e1e2d; }
-        body { background-color: #f8f9fb; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; overflow-x: hidden; }
+        .sidebar { min-height: 100vh; background: #1e1e2d; color: #a2a3b7; width: 255px; position: fixed; left: 0; top: 0; z-index: 1000; transition: all 0.3s; }
+        .brand-section { padding: 25px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .brand-name { color: #ff7a00; font-weight: 800; font-size: 1.4rem; text-decoration: none; }
+        .nav-section-title { padding: 15px 25px 5px; font-size: 0.65rem; text-transform: uppercase; font-weight: 700; color: #4c4e6f; letter-spacing: 1px; }
+        .sidebar .nav-link { color: #a2a3b7; padding: 12px 25px; font-size: 0.85rem; display: flex; align-items: center; transition: 0.2s; text-decoration: none; border-left: 3px solid transparent; }
+        .sidebar .nav-link i { width: 20px; margin-right: 10px; }
+        .sidebar .nav-link:hover { color: #ffffff; background: rgba(255,255,255,0.03); }
+        .sidebar .nav-link.active { background: #2b2b40; color: #ff7a00; font-weight: 600; border-left-color: #ff7a00; }
         
-        /* Sidebar Styling */
-        .sidebar { width: 260px; height: 100vh; background: var(--sidebar-bg); position: fixed; color: #fff; }
-        .sidebar .nav-link { color: #a2a3b7; padding: 15px 25px; transition: 0.3s; border-radius: 0; }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active { color: #fff; background: rgba(255,122,0, 0.1); border-left: 4px solid var(--primary-orange); }
-        .logo-area { padding: 30px 25px; font-size: 1.5rem; font-weight: bold; color: var(--primary-orange); }
+        .main-content { margin-left: 255px; padding: 25px; width: calc(100% - 255px); min-height: 100vh; transition: all 0.3s; }
+        .top-bar { background: white; padding: 15px 25px; border-radius: 12px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
         
-        /* Main Content */
-        .main-wrapper { margin-left: 260px; padding: 20px; }
-        .top-nav { background: #fff; padding: 15px 30px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #ff7a00; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-<div class="sidebar">
-    <div class="logo-area">Bake Ease 🧁</div>
-    <nav class="nav flex-column mt-2">
-        <a class="nav-link <?= $page == 'dashboard' ? 'active' : '' ?>" href="index.php?page=dashboard">🏠 Dashboard</a>
+<div class="d-flex">
+    <div class="sidebar">
+        <div class="brand-section">
+            <a href="index.php" class="brand-name">Bake Ease 🧁</a>
+        </div>
         
-        <div class="px-4 mt-3 mb-1 small text-uppercase text-muted" style="font-size: 0.65rem;">Sales & Orders</div>
-        <a class="nav-link" href="../index.php">🛒 New Order (POS)</a>
-        <a class="nav-link <?= $page == 'orders' ? 'active' : '' ?>" href="index.php?page=orders">📋 Order List</a>
-        
-        <div class="px-4 mt-3 mb-1 small text-uppercase text-muted" style="font-size: 0.65rem;">Inventory Management</div>
-        <a class="nav-link <?= $page == 'inventory' ? 'active' : '' ?>" href="index.php?page=inventory">🎂 Products</a>
-        <a class="nav-link <?= $page == 'sizes' ? 'active' : '' ?>" href="index.php?page=sizes">📏 Sizes</a>
-        <a class="nav-link <?= $page == 'addons' ? 'active' : '' ?>" href="index.php?page=addons">🍓 Add-ons</a>
-        
-        <div class="px-4 mt-3 mb-1 small text-uppercase text-muted" style="font-size: 0.65rem;">People & Logistics</div>
-        <a class="nav-link <?= $page == 'customers' ? 'active' : '' ?>" href="index.php?page=customers">👥 Customers</a>
-        <a class="nav-link <?= $page == 'deliveries' ? 'active' : '' ?>" href="index.php?page=deliveries">🚚 Deliveries</a>
-        
-        <div class="px-4 mt-3 mb-1 small text-uppercase text-muted" style="font-size: 0.65rem;">Analytics</div>
-        <a class="nav-link <?= $page == 'reports' ? 'active' : '' ?>" href="index.php?page=reports">📊 Reports</a>
-    </nav>
-</div>s
-</div>
+        <div class="nav-section-title">Analytics</div>
+        <ul class="nav flex-column mt-2">
+            <li class="nav-item">
+                <a class="nav-link <?= $page == 'dashboard' ? 'active' : '' ?>" href="index.php?page=dashboard">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?= $page == 'reports' ? 'active' : '' ?>" href="index.php?page=reports">
+                    <i class="fas fa-chart-line"></i> Reports
+                </a>
+            </li>
+        </ul>
 
-<div class="main-wrapper">
-    <div class="top-nav d-flex justify-content-between align-items-center rounded">
-        <h5 class="mb-0 fw-bold"><?= ucfirst($page) ?></h5>
-        <div class="user-profile">Admin User 👤</div>
+        <div class="nav-section-title">Sales & Orders</div>
+        <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" href="../index.php"><i class="fas fa-shopping-cart"></i> New Order (POS)</a></li>
+            <li class="nav-item">
+                <a class="nav-link <?= $page == 'order_list' ? 'active' : '' ?>" href="index.php?page=order_list">
+                    <i class="fas fa-list-check"></i> Order List
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?= $page == 'kitchen_view' ? 'active' : '' ?>" href="index.php?page=kitchen_view">
+                    <i class="fas fa-utensils"></i> Kitchen Queue
+                </a>
+            </li>
+        </ul>
+
+        <div class="nav-section-title">Inventory Management</div>
+        <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link <?= $page == 'inventory' ? 'active' : '' ?>" href="index.php?page=inventory"><i class="fas fa-cake-candles"></i> Products</a></li>
+            <li class="nav-item"><a class="nav-link <?= $page == 'sizes' ? 'active' : '' ?>" href="index.php?page=sizes"><i class="fas fa-ruler-combined"></i> Sizes</a></li>
+            <li class="nav-item"><a class="nav-link <?= $page == 'addons' ? 'active' : '' ?>" href="index.php?page=addons"><i class="fas fa-ice-cream"></i> Add-ons</a></li>
+        </ul>
+
+        <div class="nav-section-title">People & Logistics</div>
+        <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link <?= $page == 'customers' ? 'active' : '' ?>" href="index.php?page=customers"><i class="fas fa-users"></i> Customers</a></li>
+            <li class="nav-item"><a class="nav-link <?= $page == 'deliveries' ? 'active' : '' ?>" href="index.php?page=deliveries"><i class="fas fa-truck"></i> Deliveries</a></li>
+        </ul>
     </div>
 
-    <?php 
-// DYNAMICALLY LOAD THE PAGE
-switch($page) {
-    case 'inventory':
-        include 'views/inventory.php';
-        break;
-        
-    case 'orders':
-        // You'll need an OrderController later to fetch $all_orders
-        include 'views/orders.php';
-        break;
+    <div class="main-content">
+        <header class="top-bar">
+            <h5 class="mb-0 fw-bold" style="color: #1e1e2d;">
+                <?php 
+                    if($page == 'addons') echo "Add-ons";
+                    elseif($page == 'add_product') echo "Add New Product";
+                    elseif($page == 'edit_product') echo "Edit Product Details";
+                    elseif($page == 'order_list') echo "Order List";
+                    elseif($page == 'kitchen_view') echo "Kitchen Queue";
+                    elseif($page == 'customers') echo "Customer Directory";
+                    elseif($page == 'deliveries') echo "Delivery Dispatch";
+                    else echo ucfirst(str_replace('_', ' ', $page));
+                ?>
+            </h5>
+            <div class="d-flex align-items-center">
+                <span class="small fw-semibold text-muted me-3">Admin User 👤</span>
+                <a href="logout.php" class="btn btn-sm btn-outline-danger border-0"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+        </header>
 
-    case 'sizes':
-        include 'views/sizes.php';
-        break;
+        <div class="container-fluid p-0">
+            <?php 
+            switch ($page) {
+                case 'dashboard':
+                    if (file_exists('views/dashboard.php')) include 'views/dashboard.php';
+                    break;
+                
+                case 'inventory':
+                    if (file_exists('views/inventory.php')) include 'views/inventory.php';
+                    break;
 
-    case 'addons':
-        include 'views/addons.php';
-        break;
+                case 'order_list':
+                    if (file_exists('views/order_list.php')) include 'views/order_list.php';
+                    break;
 
-    case 'customers':
-        include 'views/customers.php';
-        break;
+                case 'kitchen_view':
+                    if (file_exists('views/kitchen_view.php')) include 'views/kitchen_view.php';
+                    break;
 
-    case 'deliveries':
-        include 'views/deliveries.php';
-        break;
+                case 'reports':
+                    // These variables are now available for reports.php
+                    $todaySales = $reportCtrl->getTodaySales(); 
+                    if (file_exists('views/reports.php')) include 'views/reports.php';
+                    break;
 
-    case 'reports':
-        $today = date('Y-m-d');
-        $sales = $report->getDailySales($today);
-        $totalRevenue = $report->getTotalRevenue($today);
-        include 'views/reports.php';
-        break;
+                case 'add_product':
+                    if (file_exists('views/add_product.php')) include 'views/add_product.php';
+                    break;
 
-    case 'dashboard':
-    default:
-        $total_sales = $report->getTotalSales();
-        $low_stock_count = $report->getLowStockCount();
-        $recent_transactions = $report->getRecentTransactions();
-        include 'views/dashboard.php';
-        break;
-}
-?>
+                case 'edit_product':
+                    if (file_exists('views/edit_product.php')) include 'views/edit_product.php';
+                    break;
+
+                case 'sizes':
+                    if (file_exists('views/sizes.php')) include 'views/sizes.php';
+                    break;
+
+                case 'addons':
+                    if (file_exists('views/addons.php')) include 'views/addons.php';
+                    break;
+
+                case 'customers':
+                    if (file_exists('views/customer_list.php')) include 'views/customer_list.php';
+                    break;
+
+                case 'deliveries':
+                    if (file_exists('views/deliveries.php')) include 'views/deliveries.php';
+                    break;
+
+                default:
+                    echo "<div class='alert alert-light border shadow-sm' style='border-radius:10px;'>
+                            <i class='fas fa-info-circle me-2'></i> Section under development.
+                          </div>";
+                    break;
+            }
+            ?>
+        </div>
+    </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
