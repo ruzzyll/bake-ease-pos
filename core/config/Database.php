@@ -1,8 +1,8 @@
 <?php
 class Database {
-    // Specify your new port here
+    // Standard XAMPP settings
     private $host = "127.0.0.1";
-    private $port = "3307"; 
+    private $port = "3306"; // <--- CHANGE THIS BACK TO 3306
     private $db_name = "bake-ease-pos";
     private $username = "root";
     private $password = "";
@@ -11,7 +11,7 @@ class Database {
     public function getConnection() {
         $this->conn = null;
         try {
-            // Updated DSN string to include the port variable
+            // Updated DSN string to use the correct port
             $this->conn = new PDO("mysql:host=" . $this->host . ";port=" . $this->port . ";dbname=" . $this->db_name, $this->username, $this->password);
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->conn->exec("set names utf8");
