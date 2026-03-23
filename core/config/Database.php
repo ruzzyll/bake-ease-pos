@@ -2,7 +2,7 @@
 class Database {
     // Standard XAMPP settings
     private $host = "127.0.0.1";
-    private $port = "3306"; // <--- CHANGE THIS BACK TO 3306
+    private $port = "3306"; 
     private $db_name = "bake-ease-pos";
     private $username = "root";
     private $password = "";
