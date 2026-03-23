@@ -1,0 +1,30 @@
+:root {
+    --primary: #8d2b4d;      /* Deep Berry */
+    --secondary: #fce4ec;    /* Soft Pink */
+    --accent: #ffb300;       /* Honey Yellow */
+    --bg-light: #fdfaf6;     /* Cream White */
+    --text-dark: #2d2d2d;
+    --shadow: 0 8px 30px rgba(0,0,0,0.05);
+}
+
+body {
+    background-color: var(--bg-light);
+    font-family: 'Poppins', 'Inter', sans-serif;
+    color: var(--text-dark);
+}
+
+.btn-cake {
+    background: var(--primary);
+    color: white;
+    border-radius: 50px;
+    padding: 10px 25px;
+    transition: all 0.3s ease;
+    border: none;
+    font-weight: 600;
+}
+
+.btn-cake:hover {
+    background: #72203d;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(141, 43, 77, 0.3);
+}

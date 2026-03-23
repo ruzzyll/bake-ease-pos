@@ -1,0 +1,15 @@
+.sidebar {
+    background: linear-gradient(180deg, #8d2b4d 0%, #72203d 100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-link {
+    color: rgba(255,255,255,0.7);
+    border-radius: 10px;
+    margin: 5px 0;
+}
+
+.nav-link:hover, .nav-link.active {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
